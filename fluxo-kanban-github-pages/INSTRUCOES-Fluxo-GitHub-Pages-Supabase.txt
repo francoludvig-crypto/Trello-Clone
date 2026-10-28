@@ -1,0 +1,105 @@
+FLUXO KANBAN — CONFIGURAÇÃO DO GITHUB PAGES + SUPABASE
+======================================================
+
+ARQUIVOS
+--------
+- fluxo-kanban.html: aplicação completa (HTML, CSS e JavaScript no mesmo arquivo).
+- fluxo-supabase.sql: cria a tabela JSONB e as políticas RLS do banco.
+
+COMO FUNCIONA
+-------------
+O HTML continua podendo funcionar em modo local, salvando os dados no navegador.
+Depois de configurar o Supabase e entrar com uma conta, a aplicação sincroniza o
+workspace JSON dessa conta com a tabela public.fluxo_workspaces.
+
+Neste primeiro modelo cada conta possui um workspace privado. Os projetos de uma
+mesma conta são sincronizados entre navegadores/dispositivos. O compartilhamento
+simultâneo de um projeto entre contas diferentes não está incluído nesta versão.
+
+PARTE 1 — PUBLICAR NO GITHUB PAGES
+---------------------------------
+1. Entre em https://github.com e crie um repositório, por exemplo: fluxo-kanban.
+2. Defina o repositório como Public se sua conta/plano exigir isso para usar Pages.
+   Lembre-se de que o site publicado é acessível publicamente; não coloque segredos
+   no HTML ou no repositório.
+3. Baixe fluxo-kanban.html e renomeie a cópia para index.html.
+4. No repositório, selecione Add file > Upload files e envie index.html.
+5. Faça commit das alterações na branch main.
+6. Abra Settings > Pages.
+7. Em Build and deployment, escolha Deploy from a branch.
+8. Selecione a branch main e a pasta /(root), depois clique Save.
+9. Aguarde a publicação e abra a URL informada pelo GitHub. Ela normalmente terá
+   este formato: https://SEU-USUARIO.github.io/fluxo-kanban/.
+10. Teste a página antes de configurar a nuvem. A aplicação deve abrir em modo local.
+
+PARTE 2 — CRIAR O PROJETO NO SUPABASE
+-------------------------------------
+1. Entre em https://supabase.com e crie um projeto.
+2. Guarde a senha do banco em um gerenciador de senhas. A aplicação HTML não precisa
+   da senha do banco PostgreSQL.
+3. Abra SQL Editor no painel Supabase.
+4. Abra o arquivo fluxo-supabase.sql em um editor de texto, copie todo o conteúdo,
+   cole no SQL Editor e execute (Run).
+5. Confirme que a tabela public.fluxo_workspaces foi criada sem erros.
+6. No painel do Supabase, abra Connect ou Project Settings > API Keys/API.
+7. Copie a Project URL e a chave publicável (Publishable key), normalmente iniciada
+   por sb_publishable_. Em projetos antigos, a chave anon legada também é aceita.
+8. NUNCA copie sb_secret_ ou service_role para a aplicação no navegador.
+
+PARTE 3 — CONFIGURAR A AUTENTICAÇÃO
+----------------------------------
+1. No Supabase, abra Authentication > URL Configuration.
+2. Em Site URL, defina a URL publicada do GitHub Pages, por exemplo:
+   https://SEU-USUARIO.github.io/fluxo-kanban/
+3. Em Redirect URLs, adicione a mesma URL exata, incluindo a barra final se ela fizer
+   parte da URL publicada.
+4. Em Authentication > Sign In / Providers, confira se Email está habilitado.
+5. Durante testes, o Supabase pode exigir confirmação por e-mail. Nesse caso, crie a
+   conta no Fluxo, confirme o e-mail e depois volte à aplicação para entrar.
+6. O serviço de envio de e-mail padrão é limitado para testes; para um serviço real,
+   configure um provedor SMTP próprio no Supabase.
+
+PARTE 4 — CONECTAR O FLUXO AO SUPABASE
+-------------------------------------
+1. Abra a URL do GitHub Pages.
+2. Clique em Conectar nuvem (ou Conta conectada).
+3. No campo Project URL, cole a URL do seu projeto Supabase.
+4. No campo Publishable key, cole a chave publicável.
+5. Clique em Salvar configuração. A configuração fica guardada no armazenamento
+   local desse navegador; não é necessário editar o HTML para inserir a chave.
+6. Digite seu e-mail e uma senha com pelo menos 6 caracteres.
+7. Clique Criar conta. Se houver confirmação por e-mail, confirme o cadastro.
+8. Volte ao Fluxo e clique Entrar.
+9. Confira se o indicador no rodapé muda para “Sincronizado na nuvem”.
+10. Crie um card ou um projeto, espere a sincronização e abra o site em outro
+    navegador/dispositivo. Entre com a mesma conta para confirmar a persistência.
+
+PARTE 5 — IMPORTAR UM QUADRO JSON DO TRELLO
+------------------------------------------
+1. Exporte o quadro do Trello no formato JSON.
+2. No Fluxo, clique Importar JSON e selecione o arquivo.
+3. O quadro importado será adicionado ao workspace atual e sincronizado na nuvem
+   se houver sessão autenticada e configuração válida.
+4. Use Exportar JSON para guardar uma cópia do projeto.
+
+SEGURANÇA E LIMITAÇÕES IMPORTANTES
+---------------------------------
+- A chave publicável pode aparecer no cliente; a segurança vem das políticas RLS.
+- Nunca publique uma chave secreta/service_role no HTML, GitHub ou navegador.
+- O SQL restringe cada linha ao próprio usuário autenticado (auth.uid() = user_id).
+- O modelo atual armazena o workspace de cada conta como JSONB em uma única linha.
+  É simples e compatível com a estrutura existente, mas não oferece compartilhamento
+  de um mesmo projeto entre contas diferentes nem edição colaborativa simultânea.
+- Os dados locais permanecem no navegador mesmo quando não há conexão. Faça cópias
+  de segurança com Exportar JSON antes de migrações importantes.
+- Se algo falhar, confira primeiro a Project URL, a Publishable key, se o SQL foi
+  executado, se o usuário está autenticado e se as políticas RLS existem.
+
+DOCUMENTAÇÃO OFICIAL
+--------------------
+GitHub Pages: https://docs.github.com/en/pages/quickstart
+Supabase JS: https://supabase.com/docs/reference/javascript/installing
+Supabase RLS: https://supabase.com/docs/guides/database/postgres/row-level-security
+Supabase Auth: https://supabase.com/docs/guides/auth/passwords
+Supabase Redirect URLs: https://supabase.com/docs/guides/auth/redirect-urls
+Supabase API Keys: https://supabase.com/docs/guides/getting-started/api-keys
